@@ -3,6 +3,9 @@ version: '1.0-SNAPSHOT'
 main: org.kamshi.staffplugin1.Staffplugin1
 api-version: '1.13'
 commands:
+  tag:
+    description: Ustawia lub resetuje tag gracza
+    usage: /tag <gracz> <tag|reset>
   mute:
     description: Wyciszenie gracza na stałe.
     usage: /mute <gracz> [powód]
@@ -30,10 +33,10 @@ commands:
     description: Odbanowuje gracza
     usage: /unban <gracz>
     permission: staff.unban
-  togglejoinmessage:
+  jqmessage:
     description: Włącza lub wyłącza niestandardową wiadomość powitalną
-    usage: /togglejoinmessage
-    permission: staff.joinmsg
+    usage: /jqmessage
+    permission: staff.jqmsg
   heal:
     description: Heal yourself or a specified player
     usage: /heal [player]

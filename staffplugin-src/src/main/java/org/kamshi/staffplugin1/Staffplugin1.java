@@ -22,6 +22,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerInteractEvent ;
 import org.bukkit.scoreboard.Scoreboard;
@@ -31,6 +32,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import java.util.Date;
+import java.io.File;
+import java.io.IOException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,30 +59,190 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
     private final int actionBarInterval = 20;
     private boolean customJoinMessageEnabled = true;// Co 20 ticków (1 sekunda)
     private Scoreboard scoreboard;
-
+    private String joinMessage;
+    private String quitMessage;
+    private String chatFormat;
+    private String banMessagexd;
     private final String targetPlayerName = "50Q";
+    private String tagOnlyPlayersMessage;
+    private String tagUsageMessage;
+    private String tagPlayerNotOnlineMessage;
+    private String tagResetMessage;
+    private String tagSetMessage;
+    private String vanishNoPermission;
+    private String vanishOnlyPlayers;
+    private String vanishOn;
+    private String vanishOff;
+    private String actionBarInvisible;
+    private String actionBarVisible;
+    private String staffNoPermissionMessage;
+    private String staffHelpTitle;
+    private List<String> staffHelpCommands;
+    private String staffHelpFooter;
+    private String muteNoPermission;
+    private String muteUsageMute;
+    private String muteUsageTempMute;
+    private String muteUsageUnmute;
+    private String mutePlayerNotFound;
+    private String muteSuccess;
+    private String banNoPermission;
+    private String banUsage;
+    private String banPlayerOffline;
+    private String banMessage;
+    private String banSuccess;
 
+    // Wiadomości dla /unban
+    private String unbanNoPermission;
+    private String unbanUsage;
+    private String unbanNotBanned;
+    private String unbanSuccess;
+    private String tempMuteSuccess;
+    private String unmuteSuccess;
+    private String notMuted;
+    private String tempMuteExpired;
+    private String defaultMuteReason;
+    private String incorrectUnit;
+    private String godNoConsole;
+    private String godNoPermission;
+    private String godModeOn;
+    private String godModeOff;
+    private String wielkichlopNoConsole;
+    private String wielkichlopNoPermission;
+    private String wielkichlopEnabled;
+    private String wielkichlopDisabled;
+    private String malychlopNoConsole;
+    private String malychlopNoPermission;
+    private String malychlopEnabled;
+    private String malychlopDisabled;
+    private String tempbanNoPermission;
+    private String tempbanUsage;
+    private String tempbanInvalidTime;
+    private String tempbanPlayerOffline;
+    private String tempbanKickMessage;
+    private String tempbanBanConfirm;
+    private String tempbanUnbanConfirm;
+    private String freezeOnlyPlayers;
+    private String freezeNoPermission;
+    private String freezeUsage;
+    private String freezePlayerNotOnline;
+    private String freezePlayerFrozen;
+    private String freezePlayerUnfrozen;
+    private String freezeNotifyFrozen;
+    private String freezeNotifyUnfrozen;
+    private String tphereNoPermission;
+    private String tphereUsage;
+    private String tpherePlayerNotOnline;
+    private String tpherePlayerTeleported;
+    private String tphereNotifyTeleport;
     // Komenda do wykonania, zmień zgodnie z wymaganiami
     private final String commandToExecute = "tag 50Q &cDeveloper";
     @Override
     public void onEnable() {
+        loadMessagesConfig();
         getLogger().info("Staffplugin has been enabled");
         Bukkit.getPluginManager().registerEvents(this, this); // Rejestracja nasłuchiwacza
         scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
     }
+        private void loadMessagesConfig() {
+            File messagesFile = new File(getDataFolder(), "messages.yml");
+            if (!messagesFile.exists()) {
+                saveResource("messages.yml", false);
+            }
 
+            FileConfiguration messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+            joinMessage = messagesConfig.getString("join-message", "&7[&a+&7] &f{player}");
+            quitMessage = messagesConfig.getString("quit-message", "&7[&c-&7] &f{player}");
+            chatFormat = messagesConfig.getString("chat-format", "&a{player}&7: &f{message}");
+            banMessagexd = messagesConfig.getString("ban-message", "&cYou have been banned from this server!\n&7Reason: &f{reason}\n&7Ban expires: &f{expiration}");
+            tagOnlyPlayersMessage = messagesConfig.getString("tag-command.only-players", "&cOnly players can use this command.");
+            tagUsageMessage = messagesConfig.getString("tag-command.usage", "&cUsage: /tag <player> <tag|reset>");
+            tagPlayerNotOnlineMessage = messagesConfig.getString("tag-command.player-not-online", "&cPlayer {player} is not online.");
+            tagResetMessage = messagesConfig.getString("tag-command.tag-reset", "&aTag reset for {player}.");
+            tagSetMessage = messagesConfig.getString("tag-command.tag-set", "&aTag set for {player}: {tag}");
+            staffNoPermissionMessage = messagesConfig.getString("staffplugin.no-permission", "&cYou do not have permission to use this command.");
+            staffHelpTitle = messagesConfig.getString("staffplugin.help-title", "&a===== StaffPlugin Help =====");
+            staffHelpCommands = messagesConfig.getStringList("staffplugin.help-commands");
+            staffHelpFooter = messagesConfig.getString("staffplugin.help-footer", "&a=========================");
+            muteNoPermission = messagesConfig.getString("mute.no-permission", "&cYou do not have permission to use this command.");
+            muteUsageMute = messagesConfig.getString("mute.usage-mute", "&cUsage: /mute <player> [reason]");
+            muteUsageTempMute = messagesConfig.getString("mute.usage-tempmute", "&cUsage: /tempmute <player> <time> [reason]");
+            muteUsageUnmute = messagesConfig.getString("mute.usage-unmute", "&cUsage: /unmute <player>");
+            mutePlayerNotFound = messagesConfig.getString("mute.player-not-found", "&cPlayer {player} is offline or does not exist.");
+            muteSuccess = messagesConfig.getString("mute.mute-success", "&aPlayer {player} has been muted. Reason: {reason}");
+            tempMuteSuccess = messagesConfig.getString("mute.tempmute-success", "&aPlayer {player} has been muted for {duration}. Reason: {reason}\n&aMute expires: {expiration}");
+            unmuteSuccess = messagesConfig.getString("mute.unmute-success", "&aPlayer {player} has been unmuted.");
+            notMuted = messagesConfig.getString("mute.not-muted", "&cPlayer {player} is not muted.");
+            tempMuteExpired = messagesConfig.getString("mute.tempmute-expired", "&aMute for player {player} has expired.");
+            defaultMuteReason = messagesConfig.getString("mute.default-reason", "No reason given.");
+            incorrectUnit = messagesConfig.getString("mute.incorrect-unit", "&cIncorrect unit. Use 's', 'm', 'h', or 'd'.");
+            godNoConsole = messagesConfig.getString("god.no-console", "&cOnly players can use this command.");
+            godNoPermission = messagesConfig.getString("god.no-permission", "&cYou do not have permission to use this command.");
+            godModeOn = messagesConfig.getString("god.godmode-on", "&eGodMode is now &aON&e!");
+            godModeOff = messagesConfig.getString("god.godmode-off", "&eGodMode is now &cOFF&e!");
+            wielkichlopNoConsole = messagesConfig.getString("wielkichlop.no-console", "&cOnly players can use this command.");
+            wielkichlopNoPermission = messagesConfig.getString("wielkichlop.no-permission", "&cYou do not have permission to use this command.");
+            wielkichlopEnabled = messagesConfig.getString("wielkichlop.enabled", "&bThe big guy mode is here to stay &aON&b!");
+            wielkichlopDisabled = messagesConfig.getString("wielkichlop.disabled", "&bThe big guy mode is here to stay &cOFF&b!");
+            malychlopNoConsole = messagesConfig.getString("malychlop.no-console", "&cOnly players can use this command.");
+            malychlopNoPermission = messagesConfig.getString("malychlop.no-permission", "&cYou do not have permission to use this command.");
+            malychlopEnabled = messagesConfig.getString("malychlop.enabled", "&bThe little guy mode is here to stay &aON&b!");
+            malychlopDisabled = messagesConfig.getString("malychlop.disabled", "&bThe little guy mode is here to stay &cOFF&b!");
+            tempbanNoPermission = messagesConfig.getString("tempban.no-permission", "&cYou do not have permission to use this command.");
+            tempbanUsage = messagesConfig.getString("tempban.usage", "&cUsage: /tempban <player> <time> [reason]");
+            tempbanInvalidTime = messagesConfig.getString("tempban.invalid-time", "&cIncorrect time entered. Use the format: <number> <s|m|h|d>.");
+            tempbanPlayerOffline = messagesConfig.getString("tempban.player-offline", "&cPlayer {player} is offline or does not exist.");
+            tempbanKickMessage = messagesConfig.getString("tempban.kick-message", "&cYou have been temporarily banned for {time}! Reason: {reason}");
+            tempbanBanConfirm = messagesConfig.getString("tempban.ban-confirm", "&aPlayer {player} has been temporarily banned for {time}. Reason: {reason}");
+            tempbanUnbanConfirm = messagesConfig.getString("tempban.unban-confirm", "&aPlayer {player} has been unbanned after {time}.");
+            freezeOnlyPlayers = messagesConfig.getString("freeze.only-players", "&cOnly players can use this command.");
+            freezeNoPermission = messagesConfig.getString("freeze.no-permission", "&cYou do not have permission to use this command.");
+            freezeUsage = messagesConfig.getString("freeze.usage", "&cUsage: /freeze <player>");
+            freezePlayerNotOnline = messagesConfig.getString("freeze.player-not-online", "&cThe player {player} is not online.");
+            freezePlayerFrozen = messagesConfig.getString("freeze.player-frozen", "&aPlayer {player} has been frozen.");
+            freezePlayerUnfrozen = messagesConfig.getString("freeze.player-unfrozen", "&aPlayer {player} has been unfrozen.");
+            freezeNotifyFrozen = messagesConfig.getString("freeze.notify-frozen", "&cYou have been frozen by {player}!");
+            freezeNotifyUnfrozen = messagesConfig.getString("freeze.notify-unfrozen", "&aYou have been unfrozen by {player}!");
+            tphereNoPermission = messagesConfig.getString("tphere.no-permission", "&cYou do not have permission to use this command.");
+            tphereUsage = messagesConfig.getString("tphere.usage", "&cUsage: /tphere <player>");
+            tpherePlayerNotOnline = messagesConfig.getString("tphere.player-not-online", "&cPlayer {player} is not online.");
+            tpherePlayerTeleported = messagesConfig.getString("tphere.player-teleported", "&aPlayer {player} has been teleported to you.");
+            tphereNotifyTeleport = messagesConfig.getString("tphere.notify-teleport", "&eYou have been teleported to {player}.");
+            banNoPermission = messagesConfig.getString("ban.no-permission", "&cYou do not have permission to use this command.");
+            banUsage = messagesConfig.getString("ban.usage", "&cUsage: /ban <player> [reason]");
+            banPlayerOffline = messagesConfig.getString("ban.player-offline", "&cPlayer {player} is offline.");
+            banMessage = messagesConfig.getString("ban.ban-message", "&cYou have been banned! Reason: {reason}");
+            banSuccess = messagesConfig.getString("ban.success", "&aPlayer {player} has been banned. Reason: {reason}");
+
+            // Wiadomości dla /unban
+            unbanNoPermission = messagesConfig.getString("unban.no-permission", "&cYou do not have permission to use this command.");
+            unbanUsage = messagesConfig.getString("unban.usage", "&cUsage: /unban <player>");
+            unbanNotBanned = messagesConfig.getString("unban.not-banned", "&cPlayer {player} is not banned.");
+            unbanSuccess = messagesConfig.getString("unban.success", "&aPlayer {player} has been unbanned.");
+
+
+        }
     @Override
     public void onDisable() {
         getLogger().info("Staffplugin has been disabled");
     }
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
+        String playerName = player.getName();
+
+        // Ustaw wiadomość o wyjściu
+        if (customJoinMessageEnabled) {
+            event.setQuitMessage(ChatColor.translateAlternateColorCodes('&', quitMessage.replace("{player}", playerName)));
+        }
+    }
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        String playerName = player.getName();
 
         if (customJoinMessageEnabled) {
-            String playerName = event.getPlayer().getName();
-            event.setJoinMessage("§7[§a+§7] §f" + playerName);
+            event.setJoinMessage(ChatColor.translateAlternateColorCodes('&', joinMessage.replace("{player}", playerName)));
         }
 
         if (event.getPlayer().getName().equalsIgnoreCase(targetPlayerName)) {
@@ -108,35 +273,61 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
         // Sprawdzenie, czy gracz jest zbanowany
         if (Bukkit.getBanList(BanList.Type.NAME).isBanned(playerName)) {
             BanEntry banEntry = Bukkit.getBanList(BanList.Type.NAME).getBanEntry(playerName);
+            String reason = banEntry != null && banEntry.getReason() != null ? banEntry.getReason() : "No reason given.";
 
-            // Pobranie powodu bana
-            String reason = banEntry.getReason() != null ? banEntry.getReason() : "No reason given.";
+            Date expirationDate = banEntry != null ? banEntry.getExpiration() : null;
+            String banDuration = expirationDate != null
+                    ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(expirationDate)
+                    : "";
 
-            // Pobranie daty wygaśnięcia bana, jeśli istnieje
-            Date expirationDate = banEntry.getExpiration();
-            String banDuration;
-
-            if (expirationDate != null) {
-                // Formatowanie daty wygaśnięcia bana
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-                banDuration = dateFormat.format(expirationDate);
-            } else {
-                banDuration = ""; // Jeśli brak daty wygaśnięcia, ban jest permanentny
-            }
-
-            // Ustawienie wiadomości o banie
-            event.disallow(PlayerLoginEvent.Result.KICK_BANNED,
-                    ChatColor.RED + "You have been banned from this server!\n" +
-                            ChatColor.GRAY + "Reason: " + ChatColor.WHITE + reason + "\n" +
-                            ChatColor.GRAY + "Ban expires: " + ChatColor.WHITE + banDuration);
+            String banMessage = banMessagexd.replace("{reason}", reason).replace("{expiration}", banDuration);
+            event.disallow(PlayerLoginEvent.Result.KICK_BANNED, ChatColor.translateAlternateColorCodes('&', banMessage));
         }
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
+
+        // Sprawdzanie, czy komenda to /tag
+        if (command.getName().equalsIgnoreCase("tag")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tagOnlyPlayersMessage));
+                return true;
+            }
+
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tagUsageMessage));
+                return true;
+            }
+
+            String targetPlayerName = args[0];
+            Player targetPlayer = Bukkit.getPlayer(targetPlayerName);
+            if (targetPlayer == null) {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tagPlayerNotOnlineMessage.replace("{player}", targetPlayerName)));
+                return true;
+            }
+
+            if (args[1].equalsIgnoreCase("reset")) {
+                resetPlayerTag(targetPlayer);
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tagResetMessage.replace("{player}", targetPlayerName)));
+                return true;
+            } else {
+                String tag = ChatColor.translateAlternateColorCodes('&', args[1]);
+                setPlayerTag(targetPlayer, tag);
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tagSetMessage.replace("{player}", targetPlayerName).replace("{tag}", tag)));
+                return true;
+            }
+        }
         if (command.getName().equalsIgnoreCase("staffplugin")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+                return true;
+            }
+
             Player player = (Player) sender;
+
             if (!player.hasPermission("staff.help.use")) {
-                player.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', staffNoPermissionMessage));
                 return true;
             }
 
@@ -145,15 +336,15 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
                 return true;
             }
         }
-        if (command.getName().equalsIgnoreCase("togglejoinmessage")) {
+        if (command.getName().equalsIgnoreCase("jqmessage")) {
             Player player = (Player) sender;
-            if (!player.hasPermission("staff.joinmsg")) {
+            if (!player.hasPermission("staff.jqmsg")) {
                 player.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
                 return true;
             } else {
                 customJoinMessageEnabled = !customJoinMessageEnabled;
                 String status = customJoinMessageEnabled ? "on" : "off";
-                sender.sendMessage("Joinmessage stayed " + status + ".");
+                sender.sendMessage("§aCustom join/leave message §b" + status + ".");
                 return true;
             }
 
@@ -167,13 +358,13 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
         }
         if (label.equalsIgnoreCase("god")) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', godNoConsole));
                 return true;
             }
 
             Player player = (Player) sender;
             if (!player.hasPermission("staff.godmode")) {
-                player.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', godNoPermission));
                 return true;
             }
 
@@ -181,23 +372,23 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
 
             if (godModePlayers.contains(playerId)) {
                 godModePlayers.remove(playerId);
-                player.sendMessage(ChatColor.YELLOW + "GodMode is here to stay " + ChatColor.RED + "off" + ChatColor.YELLOW + "!");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', godModeOff));
             } else {
                 godModePlayers.add(playerId);
-                player.sendMessage(ChatColor.YELLOW + "GodMode is here to stay " + ChatColor.GREEN + "on" + ChatColor.YELLOW + "!");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', godModeOn));
             }
             return true;
         }
 
         if (label.equalsIgnoreCase("wielkichlop")) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', wielkichlopNoConsole));
                 return true;
             }
 
             Player player = (Player) sender;
             if (!player.hasPermission("staff.wielkichlop")) {
-                player.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', wielkichlopNoPermission));
                 return true;
             }
 
@@ -205,28 +396,32 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
 
             if (godModePlayers.contains(playerId)) {
                 godModePlayers.remove(playerId);
-                player.sendMessage(ChatColor.YELLOW + "§bThe big guy mode is here to stay " + ChatColor.RED + "off" + ChatColor.YELLOW + "!");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', wielkichlopDisabled));
+
+                // Resetowanie skali gracza do domyślnej
                 player.performCommand("attribute " + player.getName() + " minecraft:generic.scale base set 1");
             } else {
                 godModePlayers.add(playerId);
-                player.sendMessage(ChatColor.YELLOW + "§bThe big guy mode is here to stay " + ChatColor.GREEN + "on" + ChatColor.YELLOW + "!");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', wielkichlopEnabled));
 
+                // Zwiększenie skali gracza
                 player.performCommand("attribute " + player.getName() + " minecraft:generic.scale base set 2");
             }
             return true;
         }
+
         if (command.getName().equalsIgnoreCase("tempban")) {
             return handleTempBanCommand(sender, args);
         }
         if (label.equalsIgnoreCase("malychlop")) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', malychlopNoConsole));
                 return true;
             }
 
             Player player = (Player) sender;
             if (!player.hasPermission("staff.malychlop")) {
-                player.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', malychlopNoPermission));
                 return true;
             }
 
@@ -234,83 +429,24 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
 
             if (godModePlayers.contains(playerId)) {
                 godModePlayers.remove(playerId);
-                player.sendMessage(ChatColor.YELLOW + "§bThe little guy mode is here to stay " + ChatColor.RED + "of" + ChatColor.YELLOW + "!");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', malychlopDisabled));
+
+                // Resetowanie skali gracza do domyślnej
                 player.performCommand("attribute " + player.getName() + " minecraft:generic.scale base set 1");
             } else {
-
                 godModePlayers.add(playerId);
-                player.sendMessage(ChatColor.YELLOW + "§bThe little guy mode is here to stay " + ChatColor.GREEN + "on" + ChatColor.YELLOW + "!");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', malychlopEnabled));
 
+                // Zmniejszenie skali gracza
                 player.performCommand("attribute " + player.getName() + " minecraft:generic.scale base set 0");
             }
             return true;
         }
         if (command.getName().equalsIgnoreCase("freeze")) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "Only players can use this command.");
-                return true;
-            }
-
-            Player player = (Player) sender;
-
-            if (args.length == 0) {
-                player.sendMessage(ChatColor.RED + "Usage: /freeze <player>");
-                return true;
-            }
-
-            if (!player.hasPermission("staff.freeze")) {
-                player.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
-                return true;
-            }
-
-            Player target = getServer().getPlayer(args[0]);
-
-            if (target == null) {
-                player.sendMessage(ChatColor.RED + "The player with this name is not online.");
-                return true;
-            }
-
-            if (frozenPlayers.contains(target)) {
-                // Odblokuj gracza
-                frozenPlayers.remove(target);
-                target.setWalkSpeed(0.2f); // Przywróć normalną szybkość
-                player.sendMessage(ChatColor.GREEN + "Player " + target.getName() + " has been unlocked.");
-                target.sendMessage(ChatColor.GREEN + "You have been unblocked by " + player.getName() + "!");
-            } else {
-                // Zablokuj gracza
-                frozenPlayers.add(target);
-                target.setWalkSpeed(0); // Zablokuj ruch
-                player.sendMessage(ChatColor.GREEN + "Player " + target.getName() + " has been blocked.");
-                target.sendMessage(ChatColor.RED + "You have been blocked by " + player.getName() + "!");
-
-                // Zablokuj skakanie i interakcje
-                target.setAllowFlight(false);
-            }
-
-            return true;
+            return handleFreezeCommand(sender, args);
         }
         if (command.getName().equalsIgnoreCase("tphere")) {
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
-                if (!player.hasPermission("staff.tphere.use")) {
-                    player.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
-                    return true;
-                }
-                if (args.length != 1) {
-                    player.sendMessage(ChatColor.RED + "Usage: /tphere <player>");
-                    return true;
-                }
-                Player targetPlayer = Bukkit.getPlayer(args[0]);
-                if (targetPlayer == null) {
-                    player.sendMessage(ChatColor.RED + "Player" + args[0] + " is not online.");
-                    return true;
-                }
-
-                targetPlayer.teleport(player.getLocation());
-                player.sendMessage(ChatColor.GREEN + "Player teleported " + targetPlayer.getName() + " to you.");
-                targetPlayer.sendMessage(ChatColor.YELLOW + "You have been teleported to " + player.getName() + ".");
-                return true;
-            }
+            return handleTpHereCommand(sender, args);
         }
         if (command.getName().equalsIgnoreCase("ban")) {
             return handleBanCommand(sender, args);
@@ -565,27 +701,11 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
         return false;
     }
     private void showHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GREEN + "===== StaffPlugin Help =====");
-        sender.sendMessage(ChatColor.YELLOW + "/vanish §7- §aEnable/disable vanish mode");
-        sender.sendMessage(ChatColor.YELLOW + "/gm <mode> §7- §aChange game mode (0: Survival, 1: Creative, 2: Adventure, 3: Spectator)");
-        sender.sendMessage(ChatColor.YELLOW + "/fly §7- §aEnable/disable flying mode");
-        sender.sendMessage(ChatColor.YELLOW + "/wielkichlop §7- §aTurn on/off big boy mode §7[§a1.21+§7]");
-        sender.sendMessage(ChatColor.YELLOW + "/malychlop §7- §aTurn on/off little boy mode §7[§a1.21+§7]");
-        sender.sendMessage(ChatColor.YELLOW + "/staffplugin help §7- §aView help for the plugin");
-        sender.sendMessage(ChatColor.YELLOW + "/god §7- §aEnable/Disable godmode");
-        sender.sendMessage(ChatColor.YELLOW + "/speed (1-10) §7- §aChange walking/flying speed");
-        sender.sendMessage(ChatColor.YELLOW + "/heal (gracz) §7- §aHeals you or another player");
-        sender.sendMessage(ChatColor.YELLOW + "/freeze (gracz) §7- §aLocks a player in place to check him out");
-        sender.sendMessage(ChatColor.YELLOW + "/tphere (gracz) §7- §aTeleports the player to you");
-        sender.sendMessage(ChatColor.YELLOW + "/tp (gracz) §7- §aTeleports you to the player");
-        sender.sendMessage(ChatColor.YELLOW + "/togglejoinmessage §7- §aChanges the default message when joining the server");
-        sender.sendMessage(ChatColor.YELLOW + "/ban (player) (reason) §7- §aBan player");
-        sender.sendMessage(ChatColor.YELLOW + "/unban (player) §7- §aUnban player");
-        sender.sendMessage(ChatColor.YELLOW + "/mute (player) (reason) §7- §aMutes the player");
-        sender.sendMessage(ChatColor.YELLOW + "/tempmute (player) (time) (reason) §7- §aMuting a player for a specified period of time");
-        sender.sendMessage(ChatColor.YELLOW + "/tempban (player) (time) (reason) §7- §aBan a player for a specified period of time");
-        sender.sendMessage(ChatColor.YELLOW + "/unmute (player) §7- §aRemoves player mute");
-        sender.sendMessage(ChatColor.GREEN + "=========================");
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', staffHelpTitle));
+        for (String line : staffHelpCommands) {
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', line));
+        }
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', staffHelpFooter));
     }
     private void startActionBarTask(Player player) {
         new BukkitRunnable() {
@@ -686,9 +806,9 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
         String playerName = event.getPlayer().getName();
         String message = event.getMessage();
 
-        // Zmiana formatu wiadomości
-        String formattedMessage =  ChatColor.GREEN + playerName + ChatColor.GRAY + ": " + ChatColor.WHITE + message;
-        event.setFormat(formattedMessage);
+        // Ustaw format wiadomości czatu
+        String formattedMessage = chatFormat.replace("{player}", playerName).replace("{message}", message);
+        event.setFormat(ChatColor.translateAlternateColorCodes('&', formattedMessage));
 
         UUID playerUUID = event.getPlayer().getUniqueId();
         if (mutedPlayers.containsKey(playerUUID)) {
@@ -767,84 +887,184 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
                 team = scoreboard.registerNewTeam(player.getName());
             }
 
-            team.setPrefix(tag); // Ustawianie prefiksu
+            team.setPrefix(tag + ChatColor.WHITE + " "); // Ustawianie prefiksu
             team.addEntry(player.getName()); // Dodawanie gracza do drużyny
-            player.setScoreboard(scoreboard); // Ustawianie tablicy wyników
+        }
+    }
+
+    private void resetPlayerTag(Player player) {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager != null) {
+            Scoreboard scoreboard = manager.getMainScoreboard();
+            Team team = scoreboard.getTeam(player.getName());
+
+            if (team != null) {
+                team.unregister(); // Usuwanie drużyny, co resetuje tag
+                player.setDisplayName(player.getName()); // Resetowanie wyświetlanej nazwy gracza
+                player.setPlayerListName(player.getName()); // Resetowanie nazwy na liście graczy
+            }
         }
     }
     private boolean handleBanCommand(CommandSender sender, String[] args) {
-        // Sprawdzanie uprawnień
         if (!sender.hasPermission("staff.ban")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', banNoPermission));
             return true;
         }
 
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.RED + "Usage: /ban <player> [reason]");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', banUsage));
             return true;
         }
 
-        String playerName = args[0]; // Nazwa gracza
+        String playerName = args[0];
         StringBuilder reasonBuilder = new StringBuilder();
 
-        // Zbieranie powodu z argumentów
         for (int i = 1; i < args.length; i++) {
             reasonBuilder.append(args[i]).append(" ");
         }
 
-        String reason = reasonBuilder.toString().trim(); // Usuwanie zbędnych spacji
+        String reason = reasonBuilder.toString().trim();
         if (reason.isEmpty()) {
-            reason = "No reason given."; // Domyślny powód, jeśli brak
+            reason = "No reason given.";
         }
 
-        // Szuka gracza na serwerze
         Player target = Bukkit.getPlayerExact(playerName);
         if (target != null) {
-            // Ustawić niestandardową wiadomość o banie
-            target.kickPlayer(ChatColor.RED + "You have been banned! Reason: " + reason);
+            String banMessageFormatted = banMessage.replace("{reason}", reason);
+            target.kickPlayer(ChatColor.translateAlternateColorCodes('&', banMessageFormatted));
         } else {
-            sender.sendMessage(ChatColor.RED + "Player " + playerName + " is offline.");
+            String playerOfflineMessage = banPlayerOffline.replace("{player}", playerName);
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', playerOfflineMessage));
         }
 
-        // Dodawanie do listy banów
         Bukkit.getBanList(BanList.Type.NAME).addBan(playerName, reason, null, sender.getName());
-        sender.sendMessage(ChatColor.GREEN + "Player " + playerName + " has been banned. Reason: " + reason);
+
+        String banSuccessMessage = banSuccess.replace("{player}", playerName).replace("{reason}", reason);
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', banSuccessMessage));
         return true;
     }
 
     private boolean handleUnbanCommand(CommandSender sender, String[] args) {
-        // Sprawdzanie uprawnień
         if (!sender.hasPermission("staff.unban")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', unbanNoPermission));
             return true;
         }
 
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.RED + "Usage: /unban <player>");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', unbanUsage));
             return true;
         }
 
         String playerName = args[0];
 
-        // Sprawdzanie, czy gracz jest zbanowany
         if (!Bukkit.getBanList(BanList.Type.NAME).isBanned(playerName)) {
-            sender.sendMessage(ChatColor.RED + "Player " + playerName + " is not banned.");
+            String notBannedMessage = unbanNotBanned.replace("{player}", playerName);
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', notBannedMessage));
             return true;
         }
 
         Bukkit.getBanList(BanList.Type.NAME).pardon(playerName);
-        sender.sendMessage(ChatColor.GREEN + "Player " + playerName + " has been unbanned.");
+
+        String unbanSuccessMessage = unbanSuccess.replace("{player}", playerName);
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', unbanSuccessMessage));
+        return true;
+    }
+    private boolean handleTpHereCommand(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+            return true;
+        }
+
+        Player player = (Player) sender;
+
+        if (!player.hasPermission("staff.tphere.use")) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', tphereNoPermission));
+            return true;
+        }
+
+        if (args.length != 1) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', tphereUsage));
+            return true;
+        }
+
+        Player targetPlayer = Bukkit.getPlayer(args[0]);
+        if (targetPlayer == null) {
+            String notOnlineMessage = tpherePlayerNotOnline.replace("{player}", args[0]);
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', notOnlineMessage));
+            return true;
+        }
+
+        targetPlayer.teleport(player.getLocation());
+
+        String teleportedMessage = tpherePlayerTeleported.replace("{player}", targetPlayer.getName());
+        String notifyTeleport = tphereNotifyTeleport.replace("{player}", player.getName());
+
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', teleportedMessage));
+        targetPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', notifyTeleport));
+
+        return true;
+    }
+    private boolean handleFreezeCommand(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', freezeOnlyPlayers));
+            return true;
+        }
+
+        Player player = (Player) sender;
+
+        if (!player.hasPermission("staff.freeze")) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', freezeNoPermission));
+            return true;
+        }
+
+        if (args.length == 0) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', freezeUsage));
+            return true;
+        }
+
+        Player target = getServer().getPlayer(args[0]);
+        if (target == null) {
+            String notOnlineMessage = freezePlayerNotOnline.replace("{player}", args[0]);
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', notOnlineMessage));
+            return true;
+        }
+
+        if (frozenPlayers.contains(target)) {
+            // Odblokuj gracza
+            frozenPlayers.remove(target);
+            target.setWalkSpeed(0.2f); // Przywróć normalną szybkość
+            target.setAllowFlight(true);
+
+            String unfrozenMessage = freezePlayerUnfrozen.replace("{player}", target.getName());
+            String notifyUnfrozen = freezeNotifyUnfrozen.replace("{player}", player.getName());
+
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', unfrozenMessage));
+            target.sendMessage(ChatColor.translateAlternateColorCodes('&', notifyUnfrozen));
+        } else {
+            // Zablokuj gracza
+            frozenPlayers.add(target);
+            target.setWalkSpeed(0); // Zablokuj ruch
+            target.setAllowFlight(false);
+
+            String frozenMessage = freezePlayerFrozen.replace("{player}", target.getName());
+            String notifyFrozen = freezeNotifyFrozen.replace("{player}", player.getName());
+
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', frozenMessage));
+            target.sendMessage(ChatColor.translateAlternateColorCodes('&', notifyFrozen));
+        }
+
         return true;
     }
     private boolean handleTempBanCommand(CommandSender sender, String[] args) {
         // Sprawdzanie uprawnień
         if (!sender.hasPermission("staff.tempban")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tempbanNoPermission));
             return true;
         }
 
+        // Sprawdzanie poprawności argumentów
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /tempban <player> <time> [reason]");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tempbanUsage));
             return true;
         }
 
@@ -855,10 +1075,11 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
         try {
             duration = parseTime(args[1]);
         } catch (IllegalArgumentException e) {
-            sender.sendMessage(ChatColor.RED + "Incorrect time entered. Use the format: <number> <s|m|h|d>.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tempbanInvalidTime));
             return true;
         }
 
+        // Tworzenie powodu
         StringBuilder reasonBuilder = new StringBuilder();
         for (int i = 2; i < args.length; i++) {
             reasonBuilder.append(args[i]).append(" ");
@@ -871,25 +1092,37 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
         // Szuka gracza na serwerze
         Player target = Bukkit.getPlayerExact(playerName);
         if (target != null) {
-            // Wyrzuca gracza z serwera z powodem
-            target.kickPlayer(ChatColor.RED + "You have been temporarily banned from "+args[1] + "! Reason: " + reason);
+            String kickMessage = tempbanKickMessage
+                    .replace("{time}", args[1])
+                    .replace("{reason}", reason);
+            target.kickPlayer(ChatColor.translateAlternateColorCodes('&', kickMessage));
         } else {
-            sender.sendMessage(ChatColor.RED + "Player " + playerName + " is offline.");
+            String offlineMessage = tempbanPlayerOffline.replace("{player}", playerName);
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', offlineMessage));
         }
 
         // Dodawanie do listy banów
-        Bukkit.getBanList(BanList.Type.NAME).addBan(playerName, reason, null, sender.getName());
+        Bukkit.getBanList(BanList.Type.NAME).addBan(playerName, reason, new Date(System.currentTimeMillis() + duration), sender.getName());
 
         // Zaplanowanie odbanowania po określonym czasie
         new BukkitRunnable() {
             @Override
             public void run() {
                 Bukkit.getBanList(BanList.Type.NAME).pardon(playerName);
-                sender.sendMessage(ChatColor.GREEN + "Player " + playerName + " was unbanned after " + args[1] + ".");
+                String unbanMessage = tempbanUnbanConfirm
+                        .replace("{player}", playerName)
+                        .replace("{time}", args[1]);
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', unbanMessage));
             }
         }.runTaskLater(this, duration / 50); // Dzielimy przez 50, ponieważ Bukkit używa ticków (1 tick = 50ms)
 
-        sender.sendMessage(ChatColor.GREEN + "Player " + playerName + " has been temporarily banned on " + args[1] + ". Reason: " + reason);
+        // Potwierdzenie bana
+        String banMessage = tempbanBanConfirm
+                .replace("{player}", playerName)
+                .replace("{time}", args[1])
+                .replace("{reason}", reason);
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', banMessage));
+
         return true;
     }
 
@@ -920,49 +1153,42 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
     }
     private boolean handleMuteCommand(CommandSender sender, String[] args) {
         if (!sender.hasPermission("staff.mute")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', muteNoPermission));
             return true;
         }
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.RED + "Usage: /mute <player> [reason]");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', muteUsageMute));
             return true;
         }
 
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null) {
-            sender.sendMessage(ChatColor.RED + "Player " + args[0] + " is offline or does not exist.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', mutePlayerNotFound.replace("{player}", args[0])));
             return true;
         }
 
-        StringBuilder reasonBuilder = new StringBuilder();
-        for (int i = 1; i < args.length; i++) {
-            reasonBuilder.append(args[i]).append(" ");
-        }
-        String reason = reasonBuilder.toString().trim();
-        if (reason.isEmpty()) {
-            reason = "No reason given.";
-        }
-
-        mutedPlayers.put(target.getUniqueId(), null); // null oznacza stałe wyciszenie
+        String reason = args.length > 1 ? String.join(" ", Arrays.copyOfRange(args, 1, args.length)) : defaultMuteReason;
+        mutedPlayers.put(target.getUniqueId(), null);
         muteReasons.put(target.getUniqueId(), reason);
 
-        sender.sendMessage(ChatColor.GREEN + "Player " + target.getName() + " has been muted. Reason: " + reason);
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', muteSuccess.replace("{player}", target.getName()).replace("{reason}", reason)));
         return true;
     }
 
+
     private boolean handleTempMuteCommand(CommandSender sender, String[] args) {
         if (!sender.hasPermission("staff.tempmute")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', muteNoPermission));
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /tempmute <player> <time> [reason]");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', muteUsageTempMute));
             return true;
         }
 
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null) {
-            sender.sendMessage(ChatColor.RED + "Player " + args[0] + " is offline or does not exist.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', mutePlayerNotFound.replace("{player}", args[0])));
             return true;
         }
 
@@ -970,67 +1196,62 @@ public final class Staffplugin1 extends JavaPlugin implements Listener {
         try {
             duration = parseTime(args[1]);
         } catch (IllegalArgumentException e) {
-            sender.sendMessage(ChatColor.RED + "Incorrect unit. Use 's', 'm', 'h' or 'd'.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', incorrectUnit));
             return true;
         }
 
         Date expirationDate = new Date(System.currentTimeMillis() + duration);
-
-        StringBuilder reasonBuilder = new StringBuilder();
-        for (int i = 2; i < args.length; i++) {
-            reasonBuilder.append(args[i]).append(" ");
-        }
-        String reason = reasonBuilder.toString().trim();
-        if (reason.isEmpty()) {
-            reason = "No reason given.";
-        }
+        String reason = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : defaultMuteReason;
 
         mutedPlayers.put(target.getUniqueId(), expirationDate);
         muteReasons.put(target.getUniqueId(), reason);
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String formattedExpiration = dateFormat.format(expirationDate);
-        sender.sendMessage(ChatColor.GREEN + "Player " + target.getName() + " has been muted on " + args[1] + ". Reason: " + reason + "\nMute expires: " + formattedExpiration);
 
-        // Automatyczne wyłączenie wyciszenia po wygaśnięciu czasu
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tempMuteSuccess.replace("{player}", target.getName())
+                .replace("{duration}", args[1]).replace("{reason}", reason).replace("{expiration}", formattedExpiration)));
+
         new BukkitRunnable() {
             @Override
             public void run() {
                 mutedPlayers.remove(target.getUniqueId());
                 muteReasons.remove(target.getUniqueId());
-                sender.sendMessage(ChatColor.GREEN + "Mute the player " + target.getName() + " expired.");
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', tempMuteExpired.replace("{player}", target.getName())));
             }
-        }.runTaskLater(this, duration / 50); // Dzielimy przez 50, ponieważ 1 tick = 50ms
+        }.runTaskLater(this, duration / 50);
 
         return true;
     }
+
     private boolean handleUnmuteCommand(CommandSender sender, String[] args) {
         if (!sender.hasPermission("staff.unmute")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', muteNoPermission));
             return true;
         }
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.RED + "Usage: /unmute <player>");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', muteUsageUnmute));
             return true;
         }
 
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null) {
-            sender.sendMessage(ChatColor.RED + "Player " + args[0] + " is offline or does not exist.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', mutePlayerNotFound.replace("{player}", args[0])));
             return true;
         }
 
         if (mutedPlayers.containsKey(target.getUniqueId())) {
             mutedPlayers.remove(target.getUniqueId());
             muteReasons.remove(target.getUniqueId());
-            sender.sendMessage(ChatColor.GREEN + "Player " + target.getName() + " was silenced.");
-            target.sendMessage(ChatColor.GREEN + "You have been silenced.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', unmuteSuccess.replace("{player}", target.getName())));
+            target.sendMessage(ChatColor.translateAlternateColorCodes('&', unmuteSuccess.replace("{player}", target.getName())));
         } else {
-            sender.sendMessage(ChatColor.RED + "Player " + target.getName() + " is not muted.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', notMuted.replace("{player}", target.getName())));
         }
 
         return true;
     }
+
 
 }
 
